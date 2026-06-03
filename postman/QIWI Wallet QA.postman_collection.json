@@ -41,7 +41,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('service is available: status is 200', () => pm.response.to.have.status(200));",
               "const raw = pm.response.text();",
               "let body;",
               "if (pm.response.code === 200) {",
@@ -50,7 +50,8 @@
               "    body = JSON.parse(raw);",
               "  });",
               "} else {",
-              "  console.warn(`Contract checks skipped: expected 200, got ${pm.response.code}`);",
+              "  console.warn(`Service is unavailable or endpoint contract is broken: expected 200, got ${pm.response.code}`);",
+              "  console.warn('Response contract checks skipped because successful response was not received.');",
               "}",
               "if (body) pm.test('response has data array', () => pm.expect(body.data).to.be.an('array'));",
               "if (body && body.data.length) {",
