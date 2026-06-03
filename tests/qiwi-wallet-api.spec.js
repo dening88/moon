@@ -72,9 +72,23 @@ test.afterAll(async () => {
 
 async function getJson(method, path, body) {
   if (config.mode === 'mock') {
+    if (path.includes('/persons/bad-wallet/')) {
+      return { status: 400, body: { code: 'invalid.person', message: 'Invalid wallet identifier' } };
+    }
     if (path.includes('/payments?rows=1')) return { status: 200, body: fixtures.history };
     if (path.includes('/accounts')) return { status: 200, body: fixtures.balance };
-    if (path.includes('/terms/99/payments')) return { status: 200, body: fixtures.createdPayment };
+    if (path.includes('/terms/99/payments')) {
+      if (!body?.sum || body.sum.amount <= 0) {
+        return { status: 400, body: { code: 'invalid.amount', message: 'Payment amount must be greater than zero' } };
+      }
+      if (body.id === 'duplicate-payment-id') {
+        return { status: 409, body: { code: 'payment.exists', message: 'Payment with this id already exists' } };
+      }
+      if (!body.fields?.account) {
+        return { status: 400, body: { code: 'missing.account', message: 'Recipient account is required' } };
+      }
+      return { status: 200, body: fixtures.createdPayment };
+    }
     if (path.includes('/transactions/')) return { status: 200, body: fixtures.transaction };
   }
 
@@ -163,4 +177,57 @@ test('payment execution: created transaction can be checked in payment history',
   }));
   expectMoney(body.sum, 643);
   expect(body.sum.amount).toBe(1);
+});
+
+test.describe('negative scenarios in mock mode', () => {
+  test.skip(config.mode !== 'mock', 'Negative contract tests are deterministic mock checks.');
+
+  test('balance request rejects malformed wallet identifier', async () => {
+    const { status, body } = await getJson(
+      'get',
+      '/funding-sources/v2/persons/bad-wallet/accounts'
+    );
+
+    expect(status).toBe(400);
+    expect(body).toEqual(expect.objectContaining({
+      code: expect.any(String),
+      message: expect.any(String)
+    }));
+  });
+
+  test('payment creation rejects zero amount', async () => {
+    const { status, body } = await getJson('post', '/sinap/api/v2/terms/99/payments', {
+      id: `qa-${Date.now()}`,
+      sum: { amount: 0, currency: '643' },
+      paymentMethod: { type: 'Account', accountId: '643' },
+      fields: { account: config.recipient }
+    });
+
+    expect(status).toBe(400);
+    expect(body.code).toBe('invalid.amount');
+  });
+
+  test('payment creation rejects missing recipient account', async () => {
+    const { status, body } = await getJson('post', '/sinap/api/v2/terms/99/payments', {
+      id: `qa-${Date.now()}`,
+      sum: { amount: 1, currency: '643' },
+      paymentMethod: { type: 'Account', accountId: '643' },
+      fields: {}
+    });
+
+    expect(status).toBe(400);
+    expect(body.code).toBe('missing.account');
+  });
+
+  test('payment creation handles duplicate payment id as conflict', async () => {
+    const { status, body } = await getJson('post', '/sinap/api/v2/terms/99/payments', {
+      id: 'duplicate-payment-id',
+      sum: { amount: 1, currency: '643' },
+      paymentMethod: { type: 'Account', accountId: '643' },
+      fields: { account: config.recipient }
+    });
+
+    expect(status).toBe(409);
+    expect(body.code).toBe('payment.exists');
+  });
 });
