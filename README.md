@@ -24,7 +24,7 @@ Live-запуск:
 QIWI_MODE=live \
 QIWI_TOKEN=<token> \
 QIWI_WALLET=79139999999 \
-QIWI_RECIPIENT=+79999999998 \
+QIWI_RECIPIENT=+79139999998 \
 npm run test:live
 ```
 
@@ -35,7 +35,7 @@ npm run test:live
 - `baseUrl`: `https://edge.qiwi.com`
 - `token`: Bearer-токен API
 - `wallet`: номер кошелька без `+`
-- `recipient`: номер получателя с `+`
+- `recipientWallet`: номер кошелька получателя с `+`
 - `paymentId`: можно оставить автогенерацию в pre-request script
 
 ## Тест-дизайн

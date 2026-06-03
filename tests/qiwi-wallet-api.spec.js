@@ -6,7 +6,7 @@ const config = {
   baseURL: process.env.QIWI_BASE_URL || 'https://edge.qiwi.com',
   token: process.env.QIWI_TOKEN || 'mock-token',
   wallet: process.env.QIWI_WALLET || '79139999999',
-  recipient: process.env.QIWI_RECIPIENT || '+79999999998'
+  recipient: process.env.QIWI_RECIPIENT || '+79139999998'
 };
 
 const fixtures = {
@@ -35,7 +35,7 @@ const fixtures = {
   createdPayment: {
     id: 'qa-1717350000000',
     terms: '99',
-    fields: { account: '+79999999998' },
+    fields: { account: '+79139999998' },
     sum: { amount: 1, currency: '643' },
     transaction: { id: '11982501857', state: { code: 'Accepted' } }
   },

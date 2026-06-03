@@ -8,7 +8,7 @@
     { "key": "baseUrl", "value": "https://edge.qiwi.com" },
     { "key": "token", "value": "" },
     { "key": "wallet", "value": "79139999999" },
-    { "key": "recipient", "value": "+79999999998" },
+    { "key": "recipientWallet", "value": "+79139999998" },
     { "key": "paymentId", "value": "" },
     { "key": "transactionId", "value": "" }
   ],
@@ -157,7 +157,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"id\": \"{{paymentId}}\",\n  \"sum\": {\n    \"amount\": 1,\n    \"currency\": \"643\"\n  },\n  \"paymentMethod\": {\n    \"type\": \"Account\",\n    \"accountId\": \"643\"\n  },\n  \"comment\": \"QA test payment {{paymentId}}\",\n  \"fields\": {\n    \"account\": \"{{recipient}}\"\n  }\n}"
+          "raw": "{\n  \"id\": \"{{paymentId}}\",\n  \"sum\": {\n    \"amount\": 1,\n    \"currency\": \"643\"\n  },\n  \"paymentMethod\": {\n    \"type\": \"Account\",\n    \"accountId\": \"643\"\n  },\n  \"comment\": \"QA test payment {{paymentId}}\",\n  \"fields\": {\n    \"account\": \"{{recipientWallet}}\"\n  }\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/sinap/api/v2/terms/99/payments",
