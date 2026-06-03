@@ -1,0 +1,14 @@
+{
+  "name": "moon-qa-task",
+  "version": "1.0.0",
+  "private": true,
+  "description": "QA test task for QIWI Wallet API: Postman collection and Playwright API tests.",
+  "scripts": {
+    "test": "playwright test",
+    "test:mock": "QIWI_MODE=mock playwright test",
+    "test:live": "QIWI_MODE=live playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.53.0"
+  }
+}

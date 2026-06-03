@@ -1,0 +1,177 @@
+{
+  "info": {
+    "name": "QIWI Wallet QA",
+    "description": "Postman collection for QA test task: service availability, balance, payment creation and payment execution checks.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://edge.qiwi.com" },
+    { "key": "token", "value": "" },
+    { "key": "wallet", "value": "79999999999" },
+    { "key": "recipient", "value": "+79999999998" },
+    { "key": "paymentId", "value": "" },
+    { "key": "transactionId", "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{token}}", "type": "string" }
+    ]
+  },
+  "item": [
+    {
+      "name": "Service availability - payment history",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/payment-history/v2/persons/{{wallet}}/payments?rows=1",
+          "host": ["{{baseUrl}}"],
+          "path": ["payment-history", "v2", "persons", "{{wallet}}", "payments"],
+          "query": [
+            { "key": "rows", "value": "1" }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('response has data array', () => pm.expect(body.data).to.be.an('array'));",
+              "if (body.data.length) {",
+              "  pm.test('payment item has documented fields', () => {",
+              "    pm.expect(body.data[0]).to.have.property('txnId');",
+              "    pm.expect(body.data[0]).to.have.property('type');",
+              "    pm.expect(body.data[0]).to.have.property('status');",
+              "  });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Balance - RUB account greater than zero",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/funding-sources/v2/persons/{{wallet}}/accounts",
+          "host": ["{{baseUrl}}"],
+          "path": ["funding-sources", "v2", "persons", "{{wallet}}", "accounts"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "const rub = (body.accounts || []).find((account) => account.alias === 'qw_wallet_rub');",
+              "pm.test('RUB wallet account exists', () => pm.expect(rub).to.exist);",
+              "pm.test('RUB balance is greater than zero', () => {",
+              "  pm.expect(rub.hasBalance).to.equal(true);",
+              "  pm.expect(rub.balance.currency).to.equal(643);",
+              "  pm.expect(rub.balance.amount).to.be.above(0);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create payment - 1 RUB",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('paymentId', `qa-${Date.now()}`);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('payment accepted for exactly 1 RUB', () => {",
+              "  pm.expect(body.sum.amount).to.equal(1);",
+              "  pm.expect(body.sum.currency).to.equal('643');",
+              "  pm.expect(body.terms).to.equal('99');",
+              "  pm.expect(body.transaction.state.code).to.be.oneOf(['Accepted', 'Completed']);",
+              "});",
+              "if (body.transaction && body.transaction.id) {",
+              "  pm.collectionVariables.set('transactionId', body.transaction.id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"{{paymentId}}\",\n  \"sum\": {\n    \"amount\": 1,\n    \"currency\": \"643\"\n  },\n  \"paymentMethod\": {\n    \"type\": \"Account\",\n    \"accountId\": \"643\"\n  },\n  \"comment\": \"QA test payment {{paymentId}}\",\n  \"fields\": {\n    \"account\": \"{{recipient}}\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/sinap/api/v2/terms/99/payments",
+          "host": ["{{baseUrl}}"],
+          "path": ["sinap", "api", "v2", "terms", "99", "payments"]
+        }
+      }
+    },
+    {
+      "name": "Payment execution - transaction status",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/payment-history/v2/transactions/{{transactionId}}?type=OUT",
+          "host": ["{{baseUrl}}"],
+          "path": ["payment-history", "v2", "transactions", "{{transactionId}}"],
+          "query": [
+            { "key": "type", "value": "OUT" }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('transaction has execution status and amount', () => {",
+              "  pm.expect(body.type).to.equal('OUT');",
+              "  pm.expect(body.status).to.be.oneOf(['WAITING', 'SUCCESS', 'ERROR']);",
+              "  pm.expect(body.sum.amount).to.equal(1);",
+              "  pm.expect(body.sum.currency).to.equal(643);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
