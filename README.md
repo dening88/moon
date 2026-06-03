@@ -23,7 +23,7 @@ Live-запуск:
 ```bash
 QIWI_MODE=live \
 QIWI_TOKEN=<token> \
-QIWI_WALLET=79999999999 \
+QIWI_WALLET=79139999999 \
 QIWI_RECIPIENT=+79999999998 \
 npm run test:live
 ```

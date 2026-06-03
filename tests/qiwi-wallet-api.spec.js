@@ -5,7 +5,7 @@ const config = {
   mode: process.env.QIWI_MODE || 'mock',
   baseURL: process.env.QIWI_BASE_URL || 'https://edge.qiwi.com',
   token: process.env.QIWI_TOKEN || 'mock-token',
-  wallet: process.env.QIWI_WALLET || '79999999999',
+  wallet: process.env.QIWI_WALLET || '79139999999',
   recipient: process.env.QIWI_RECIPIENT || '+79999999998'
 };
 

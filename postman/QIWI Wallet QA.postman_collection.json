@@ -7,7 +7,7 @@
   "variable": [
     { "key": "baseUrl", "value": "https://edge.qiwi.com" },
     { "key": "token", "value": "" },
-    { "key": "wallet", "value": "79999999999" },
+    { "key": "wallet", "value": "79139999999" },
     { "key": "recipient", "value": "+79999999998" },
     { "key": "paymentId", "value": "" },
     { "key": "transactionId", "value": "" }
