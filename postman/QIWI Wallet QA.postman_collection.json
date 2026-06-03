@@ -18,6 +18,17 @@
       { "key": "token", "value": "{{token}}", "type": "string" }
     ]
   },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test('successful API response: status is 200', () => pm.response.to.have.status(200));"
+        ]
+      }
+    }
+  ],
   "item": [
     {
       "name": "Service availability - payment history",
@@ -41,7 +52,6 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('service is available: status is 200', () => pm.response.to.have.status(200));",
               "const raw = pm.response.text();",
               "let body;",
               "if (pm.response.code === 200) {",
@@ -85,7 +95,6 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('status is 200', () => pm.response.to.have.status(200));",
               "const raw = pm.response.text();",
               "let body;",
               "let rub;",
@@ -126,7 +135,6 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('status is 200', () => pm.response.to.have.status(200));",
               "const raw = pm.response.text();",
               "let body;",
               "if (pm.response.code === 200) {",
@@ -189,7 +197,6 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('status is 200', () => pm.response.to.have.status(200));",
               "const raw = pm.response.text();",
               "let body;",
               "if (pm.response.code === 200) {",
