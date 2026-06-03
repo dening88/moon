@@ -1,61 +1,24 @@
 {
   "info": {
+    "_postman_id": "0ea3e06a-4519-4b21-ba39-9cc7c3fd88c9",
     "name": "QIWI Wallet QA",
     "description": "Postman collection for QA test task: service availability, balance, payment creation and payment execution checks.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "3276693"
   },
-  "variable": [
-    { "key": "baseUrl", "value": "https://edge.qiwi.com" },
-    { "key": "token", "value": "" },
-    { "key": "wallet", "value": "79139999999" },
-    { "key": "recipientWallet", "value": "+79139999998" },
-    { "key": "paymentId", "value": "" },
-    { "key": "transactionId", "value": "" }
-  ],
-  "auth": {
-    "type": "bearer",
-    "bearer": [
-      { "key": "token", "value": "{{token}}", "type": "string" }
-    ]
-  },
-  "event": [
-    {
-      "listen": "test",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          "pm.test('successful API response: status is 200', () => pm.response.to.have.status(200));"
-        ]
-      }
-    }
-  ],
   "item": [
     {
       "name": "Service availability - payment history",
-      "request": {
-        "method": "GET",
-        "header": [
-          { "key": "Accept", "value": "application/json" }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/payment-history/v2/persons/{{wallet}}/payments?rows=1",
-          "host": ["{{baseUrl}}"],
-          "path": ["payment-history", "v2", "persons", "{{wallet}}", "payments"],
-          "query": [
-            { "key": "rows", "value": "1" }
-          ]
-        }
-      },
       "event": [
         {
           "listen": "test",
           "script": {
-            "type": "text/javascript",
             "exec": [
               "const raw = pm.response.text();",
               "let body;",
+              "",
               "if (pm.response.code === 200) {",
-              "  pm.test('response body is valid JSON', () => {",
+              "  pm.test('Response body is valid JSON', () => {",
               "    pm.expect(raw).to.not.equal('');",
               "    body = JSON.parse(raw);",
               "  });",
@@ -63,43 +26,67 @@
               "  console.warn(`Service is unavailable or endpoint contract is broken: expected 200, got ${pm.response.code}`);",
               "  console.warn('Response contract checks skipped because successful response was not received.');",
               "}",
-              "if (body) pm.test('response has data array', () => pm.expect(body.data).to.be.an('array'));",
+              "",
+              "if (body) pm.test('Response has data array', () => pm.expect(body.data).to.be.an('array'));",
+              "",
               "if (body && body.data.length) {",
-              "  pm.test('payment item has documented fields', () => {",
+              "  pm.test('Payment item has documented fields', () => {",
               "    pm.expect(body.data[0]).to.have.property('txnId');",
               "    pm.expect(body.data[0]).to.have.property('type');",
               "    pm.expect(body.data[0]).to.have.property('status');",
               "  });",
               "}"
-            ]
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
           }
         }
-      ]
-    },
-    {
-      "name": "Balance - RUB account greater than zero",
+      ],
       "request": {
         "method": "GET",
         "header": [
-          { "key": "Accept", "value": "application/json" }
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
         ],
         "url": {
-          "raw": "{{baseUrl}}/funding-sources/v2/persons/{{wallet}}/accounts",
-          "host": ["{{baseUrl}}"],
-          "path": ["funding-sources", "v2", "persons", "{{wallet}}", "accounts"]
+          "raw": "{{baseUrl}}/payment-history/v2/persons/{{wallet}}/payments?rows=1",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "payment-history",
+            "v2",
+            "persons",
+            "{{wallet}}",
+            "payments"
+          ],
+          "query": [
+            {
+              "key": "rows",
+              "value": "1"
+            }
+          ]
         }
       },
+      "response": []
+    },
+    {
+      "name": "Balance - RUB account greater than 0",
       "event": [
         {
           "listen": "test",
           "script": {
-            "type": "text/javascript",
             "exec": [
               "const raw = pm.response.text();",
+              "",
               "let body;",
               "let rub;",
+              "",
               "if (pm.response.code === 200) {",
-              "  pm.test('response body is valid JSON', () => {",
+              "  pm.test('Response body is valid JSON', () => {",
               "    pm.expect(raw).to.not.equal('');",
               "    body = JSON.parse(raw);",
               "    rub = (body.accounts || []).find((account) => account.alias === 'qw_wallet_rub');",
@@ -107,16 +94,44 @@
               "} else {",
               "  console.warn(`Contract checks skipped: expected 200, got ${pm.response.code}`);",
               "}",
+              "",
               "if (body) pm.test('RUB wallet account exists', () => pm.expect(rub).to.exist);",
-              "if (rub) pm.test('RUB balance is greater than zero', () => {",
+              "",
+              "if (rub) pm.test('RUB balance is greater than 0', () => {",
               "  pm.expect(rub.hasBalance).to.equal(true);",
               "  pm.expect(rub.balance.currency).to.equal(643);",
               "  pm.expect(rub.balance.amount).to.be.above(0);",
               "});"
-            ]
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
           }
         }
-      ]
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/funding-sources/v2/persons/{{wallet}}/accounts",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "funding-sources",
+            "v2",
+            "persons",
+            "{{wallet}}",
+            "accounts"
+          ]
+        }
+      },
+      "response": []
     },
     {
       "name": "Create payment - 1 RUB",
@@ -124,45 +139,58 @@
         {
           "listen": "prerequest",
           "script": {
-            "type": "text/javascript",
             "exec": [
               "pm.collectionVariables.set('paymentId', `${Date.now()}`);"
-            ]
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
           }
         },
         {
           "listen": "test",
           "script": {
-            "type": "text/javascript",
             "exec": [
               "const raw = pm.response.text();",
               "let body;",
+              "",
               "if (pm.response.code === 200) {",
-              "  pm.test('response body is valid JSON', () => {",
+              "  pm.test('Response body is valid JSON', () => {",
               "    pm.expect(raw).to.not.equal('');",
               "    body = JSON.parse(raw);",
               "  });",
               "} else {",
               "  console.warn(`Contract checks skipped: expected 200, got ${pm.response.code}`);",
               "}",
-              "if (body) pm.test('payment accepted for exactly 1 RUB', () => {",
+              "",
+              "if (body) pm.test('Payment accepted for exactly 1 RUB', () => {",
               "  pm.expect(body.sum.amount).to.equal(1);",
               "  pm.expect(body.sum.currency).to.equal('643');",
               "  pm.expect(body.terms).to.equal('99');",
               "  pm.expect(body.transaction.state.code).to.be.oneOf(['Accepted', 'Completed']);",
               "});",
+              "",
               "if (body && body.transaction && body.transaction.id) {",
               "  pm.collectionVariables.set('transactionId', body.transaction.id);",
               "}"
-            ]
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
           }
         }
       ],
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Accept", "value": "application/json" },
-          { "key": "Content-Type", "value": "application/json" }
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
         ],
         "body": {
           "mode": "raw",
@@ -170,53 +198,140 @@
         },
         "url": {
           "raw": "{{baseUrl}}/sinap/api/v2/terms/99/payments",
-          "host": ["{{baseUrl}}"],
-          "path": ["sinap", "api", "v2", "terms", "99", "payments"]
-        }
-      }
-    },
-    {
-      "name": "Payment execution - transaction status",
-      "request": {
-        "method": "GET",
-        "header": [
-          { "key": "Accept", "value": "application/json" }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/payment-history/v2/transactions/{{transactionId}}?type=OUT",
-          "host": ["{{baseUrl}}"],
-          "path": ["payment-history", "v2", "transactions", "{{transactionId}}"],
-          "query": [
-            { "key": "type", "value": "OUT" }
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "sinap",
+            "api",
+            "v2",
+            "terms",
+            "99",
+            "payments"
           ]
         }
       },
+      "response": []
+    },
+    {
+      "name": "Payment execution - transaction status",
       "event": [
         {
           "listen": "test",
           "script": {
-            "type": "text/javascript",
             "exec": [
               "const raw = pm.response.text();",
               "let body;",
+              "",
               "if (pm.response.code === 200) {",
-              "  pm.test('response body is valid JSON', () => {",
+              "  pm.test('Response body is valid JSON', () => {",
               "    pm.expect(raw).to.not.equal('');",
               "    body = JSON.parse(raw);",
               "  });",
               "} else {",
               "  console.warn(`Contract checks skipped: expected 200, got ${pm.response.code}`);",
               "}",
-              "if (body) pm.test('transaction has execution status and amount', () => {",
+              "",
+              "if (body) pm.test('Transaction has execution status and amount', () => {",
               "  pm.expect(body.type).to.equal('OUT');",
               "  pm.expect(body.status).to.be.oneOf(['WAITING', 'SUCCESS', 'ERROR']);",
               "  pm.expect(body.sum.amount).to.equal(1);",
               "  pm.expect(body.sum.currency).to.equal(643);",
               "});"
-            ]
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
           }
         }
-      ]
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/payment-history/v2/transactions/{{transactionId}}?type=OUT",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "payment-history",
+            "v2",
+            "transactions",
+            "{{transactionId}}"
+          ],
+          "query": [
+            {
+              "key": "type",
+              "value": "OUT"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "requests": {},
+        "exec": [
+          "pm.test('Successful API response: status is 200', () => pm.response.to.have.status(200));"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://edge.qiwi.com"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "wallet",
+      "value": "79139999999"
+    },
+    {
+      "key": "recipientWallet",
+      "value": "+79139999998"
+    },
+    {
+      "key": "paymentId",
+      "value": ""
+    },
+    {
+      "key": "transactionId",
+      "value": ""
     }
   ]
 }
