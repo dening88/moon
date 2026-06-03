@@ -116,7 +116,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.collectionVariables.set('paymentId', `qa-${Date.now()}`);"
+              "pm.collectionVariables.set('paymentId', `${Date.now()}`);"
             ]
           }
         },
