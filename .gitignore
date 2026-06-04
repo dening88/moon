@@ -1,6 +1,14 @@
 node_modules/
 playwright-report/
 test-results/
+Playwright/node_modules/
+Playwright/playwright-report/
+Playwright/test-results/
+Playwright/reports/
+Playwright/.venv/
+__pycache__/
+*.pyc
 .env
 .DS_Store
 local-only/
+.local-only/

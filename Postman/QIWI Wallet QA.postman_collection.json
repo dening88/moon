@@ -52,15 +52,15 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/payment-history/v2/persons/{{wallet}}/payments?rows=1",
+          "raw": "{{QIWI_BASE_URL}}/payment-history/v2/persons/{{QIWI_WALLET}}/payments?rows=1",
           "host": [
-            "{{baseUrl}}"
+            "{{QIWI_BASE_URL}}"
           ],
           "path": [
             "payment-history",
             "v2",
             "persons",
-            "{{wallet}}",
+            "{{QIWI_WALLET}}",
             "payments"
           ],
           "query": [
@@ -118,15 +118,15 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/funding-sources/v2/persons/{{wallet}}/accounts",
+          "raw": "{{QIWI_BASE_URL}}/funding-sources/v2/persons/{{QIWI_WALLET}}/accounts",
           "host": [
-            "{{baseUrl}}"
+            "{{QIWI_BASE_URL}}"
           ],
           "path": [
             "funding-sources",
             "v2",
             "persons",
-            "{{wallet}}",
+            "{{QIWI_WALLET}}",
             "accounts"
           ]
         }
@@ -194,12 +194,12 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"id\": \"{{paymentId}}\",\n  \"sum\": {\n    \"amount\": 1,\n    \"currency\": \"643\"\n  },\n  \"paymentMethod\": {\n    \"type\": \"Account\",\n    \"accountId\": \"643\"\n  },\n  \"comment\": \"QA test payment {{paymentId}}\",\n  \"fields\": {\n    \"account\": \"{{recipientWallet}}\"\n  }\n}"
+          "raw": "{\n  \"id\": \"{{paymentId}}\",\n  \"sum\": {\n    \"amount\": 1,\n    \"currency\": \"643\"\n  },\n  \"paymentMethod\": {\n    \"type\": \"Account\",\n    \"accountId\": \"643\"\n  },\n  \"comment\": \"QA test payment {{paymentId}}\",\n  \"fields\": {\n    \"account\": \"{{QIWI_RECIPIENT_WALLET}}\"\n  }\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/sinap/api/v2/terms/99/payments",
+          "raw": "{{QIWI_BASE_URL}}/sinap/api/v2/terms/99/payments",
           "host": [
-            "{{baseUrl}}"
+            "{{QIWI_BASE_URL}}"
           ],
           "path": [
             "sinap",
@@ -254,9 +254,9 @@
           }
         ],
         "url": {
-          "raw": "{{baseUrl}}/payment-history/v2/transactions/{{transactionId}}?type=OUT",
+          "raw": "{{QIWI_BASE_URL}}/payment-history/v2/transactions/{{transactionId}}?type=OUT",
           "host": [
-            "{{baseUrl}}"
+            "{{QIWI_BASE_URL}}"
           ],
           "path": [
             "payment-history",
@@ -279,8 +279,8 @@
     "type": "bearer",
     "bearer": [
       {
-        "key": "token",
-        "value": "{{token}}",
+        "key": "QIWI_TOKEN",
+        "value": "{{QIWI_TOKEN}}",
         "type": "string"
       }
     ]
@@ -310,19 +310,19 @@
   ],
   "variable": [
     {
-      "key": "baseUrl",
+      "key": "QIWI_BASE_URL",
       "value": "https://edge.qiwi.com"
     },
     {
-      "key": "token",
+      "key": "QIWI_TOKEN",
       "value": ""
     },
     {
-      "key": "wallet",
+      "key": "QIWI_WALLET",
       "value": "79139999999"
     },
     {
-      "key": "recipientWallet",
+      "key": "QIWI_RECIPIENT_WALLET",
       "value": "+79139999998"
     },
     {

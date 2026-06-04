@@ -1,55 +1,103 @@
-# QA test task: QIWI Wallet API
+# QIWI Wallet API QA
 
-Решение для тестового задания на позицию QA Engineer: Postman-коллекция и API-автотесты на Playwright по документации QIWI Wallet API.
+Postman-коллекция и API-автотесты на Playwright по документации QIWI Wallet API.
 
 ## Что проверяется
 
 1. Доступность сервиса через запрос истории платежей `GET /payment-history/v2/persons/{wallet}/payments?rows=1`.
 2. Баланс кошелька `GET /funding-sources/v2/persons/{wallet}/accounts`: рублевый баланс `qw_wallet_rub` должен существовать и быть больше `0`.
-3. Создание платежа на `1` рубль через `POST /sinap/api/v2/terms/99/payments`.
+3. Создание платежа на 1 рубль через `POST /sinap/api/v2/terms/99/payments`.
 4. Исполнение платежа через проверку транзакции `GET /payment-history/v2/transactions/{transactionId}?type=OUT`.
 
-Документация QIWI указывает базовый URL `https://edge.qiwi.com`, обязательные JSON-заголовки и Bearer-авторизацию. В самой документации также отмечено, что выпуск OAuth-токенов прекращен, поэтому тесты сделаны в двух режимах: `mock` для проверки сценариев без рабочего сервиса и `live` для реального запуска при наличии токена.
+Документация QIWI указывает базовый URL `https://edge.qiwi.com`, обязательные JSON-заголовки и Bearer-авторизацию. В самой документации также отмечено, что выпуск OAuth-токенов прекращен, поэтому тесты сделаны в двух режимах в Playwright: `mock` для проверки сценариев без рабочего сервиса и `live` для реального запуска при наличии токена.
+
+## Режимы запуска Playwright
+
+Тесты поддерживают два режима запуска, чтобы их можно было использовать как для стабильной локальной проверки, так и для проверки реального API при наличии доступа.
+
+- `mock` — режим по умолчанию. Тесты не отправляют реальные HTTP-запросы, а используют подготовленные ответы. Это позволяет стабильно проверить структуру автотестов, позитивные сценарии и mock-негативные проверки.
+- `live` — режим реальных запросов к API. Используется, если есть актуальный `QIWI_TOKEN`, номер кошелька и кошелек получателя. В этом режиме те же позитивные проверки выполняются на реальном сервисе.
+
+Такой подход выполняет две задачи: `mock` подтверждает, что автотесты и проверки контрактов написаны корректно, а `live` позволяет проверить реальный API при наличии доступа.
 
 ## Запуск
 
+Самый простой запуск mock-тестов:
+
 ```bash
-npm install
-npm run test:mock
+cd Playwright
+./scripts/run_mock.sh
+```
+
+Mock-запуск с HTML-отчетом:
+
+```bash
+cd Playwright
+./scripts/run_mock_html.sh
+```
+
+Отчет сохраняется в `Playwright/reports/mock-report.html`.
+
+Скрипты:
+
+- `scripts/run_mock.sh` — запускает mock-тесты в терминале.
+- `scripts/run_mock_html.sh` — запускает mock-тесты и создает HTML-отчет.
+- `scripts/run_live.sh` — запускает live-тесты против реального API.
+- `scripts/run_live_html.sh` — запускает live-тесты против реального API и создает HTML-отчет.
+
+Прямой запуск без shell-скриптов:
+
+```bash
+cd Playwright
+python3 -m unittest discover -s tests -p "test_*.py" -v
 ```
 
 Live-запуск:
 
 ```bash
-QIWI_MODE=live \
+cd Playwright
+python3 -m pip install -r requirements.txt
 QIWI_TOKEN=<token> \
 QIWI_WALLET=79139999999 \
-QIWI_RECIPIENT=+79139999998 \
-npm run test:live
+QIWI_RECIPIENT_WALLET=+79139999998 \
+./scripts/run_live.sh
+```
+
+Live-запуск с HTML-отчетом:
+
+```bash
+cd Playwright
+python3 -m pip install -r requirements.txt
+QIWI_TOKEN=<token> \
+QIWI_WALLET=79139999999 \
+QIWI_RECIPIENT_WALLET=+79139999998 \
+./scripts/run_live_html.sh
 ```
 
 ## Postman
 
-Коллекция лежит в [postman/QIWI Wallet QA.postman_collection.json](postman/QIWI%20Wallet%20QA.postman_collection.json). Для запуска нужно задать переменные коллекции:
+Коллекция лежит в [Postman/QIWI Wallet QA.postman_collection.json](Postman/QIWI%20Wallet%20QA.postman_collection.json). Для запуска нужно задать переменные коллекции:
 
-- `baseUrl`: `https://edge.qiwi.com`
-- `token`: Bearer-токен API
-- `wallet`: номер кошелька без `+`
-- `recipientWallet`: номер кошелька получателя с `+`
+- `QIWI_BASE_URL`: `https://edge.qiwi.com`
+- `QIWI_TOKEN`: Bearer-токен API
+- `QIWI_WALLET`: номер кошелька без `+`
+- `QIWI_RECIPIENT_WALLET`: номер кошелька получателя с `+`
 - `paymentId`: можно оставить автогенерацию в pre-request script
 
 Общая проверка успешного ответа вынесена на уровень всей коллекции:
 
 ```javascript
-pm.test('successful API response: status is 200', () => pm.response.to.have.status(200));
+pm.test("successful API response: status is 200", () =>
+  pm.response.to.have.status(200),
+);
 ```
 
-Такой подход убирает дублирование: каждый запрос автоматически проверяет `200 OK`, а внутри самих запросов остаются только проверки конкретного контракта. Если live-сервис возвращает `404` или `500`, статус-проверка падает, а проверки тела ответа пропускаются с диагностическим сообщением в консоль. Это сделано намеренно, потому что в задании указано, что сервис может быть нерабочим.
+Такой подход убирает дублирование: каждый запрос автоматически проверяет `200 OK`, а внутри самих запросов остаются только проверки конкретного контракта. Если live-сервис возвращает `404` или `500`, статус-проверка падает, а проверки тела ответа пропускаются с диагностическим сообщением в консоль.
 
 Для создания платежа `paymentId` генерируется в pre-request script:
 
 ```javascript
-pm.collectionVariables.set('paymentId', `${Date.now()}`);
+pm.collectionVariables.set("paymentId", `${Date.now()}`);
 ```
 
 После успешного создания платежа `transactionId` сохраняется в переменные коллекции и используется следующим запросом для проверки исполнения платежа.
@@ -78,4 +126,4 @@ pm.collectionVariables.set('paymentId', `${Date.now()}`);
 
 ## Почему так
 
-Так как сервис может быть нерабочим, а выпуск токенов прекращен, основной акцент сделан на структуре проверок, покрытии требований и понятном запуске. Mock-режим подтверждает, что автотесты валидируют ожидаемые контракты. Live-режим использует те же проверки против реального API, если у проверяющего есть доступ.
+Так как сервис может быть недоступен, а выпуск токенов прекращен, основной акцент сделан на структуре проверок, контрактной валидации и понятном запуске. Mock-режим подтверждает, что автотесты валидируют ожидаемые контракты. Live-режим использует те же проверки, если есть рабочий доступ.
